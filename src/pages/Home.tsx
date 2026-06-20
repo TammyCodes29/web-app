@@ -31,11 +31,11 @@ export default function Home() {
         </p>
         
         {/* Suggestion: Place a beautiful hero image here, like "WhatsApp Image 2026-06-17 at 9.39.57 AM.jpg" */}
-        <div className="max-w-3xl rounded-2xl overflow-hidden border border-ink/10 shadow-sm">
+        <div className="mt-10 max-w-3xl rounded-2xl overflow-hidden border border-ink/10 shadow-sm">
           <img 
             src="/images/pgpo.jpg" 
             alt="Celebrating 13 Years" 
-            className="w-full h-[400px] object-cover"
+            className="w-full h-auto rounded-xl display-block"
             onError={(e) => {
               // Fallback placeholder if image path isn't set up yet
               e.currentTarget.style.display = 'none';

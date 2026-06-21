@@ -3,20 +3,33 @@ import { useState, FormEvent, ChangeEvent } from 'react'
 type Comment = {
   id: number
   name: string
-  body: string
-  avatarUrl?: string // Optional local image path or temporary uploaded link
+  body: any // Keeps your custom HTML layout for pre-written comments intact
+  avatarUrl?: string 
 }
 
-// 👇 ADD YOUR REAL PEOPLE AND MESSAGES HERE!
-// You can change these names, text, and match them with any of your local images (1 to 7)
 const initialComments: Comment[] = [
   { 
     id: 1, 
     name: 'Uche Okolo', 
-    body: 'Happy wedding anniversary P.Pally. I am grateful to God for the gift you are to my family. You have exemplified a true father to me, your union has taught me that you can get it right in your marriage. Thank you so much Dad for being a great template for us. We see you Dad and mummu, we see possibilities of a blessed and sweet union. Thank you Sir and Ma. God bless you. ', 
+    body: <div>
+      <p>Happy wedding anniversary P.Pally.</p>
+      <p>I am grateful to God for the gift you are to my family. You have exemplified a true father to me, your union has taught me that you can get it right in your marriage. Thank you so much Dad for being a great template for us. We see and mummy, we see possibilities of a blessed and sweet union. Thank you Sir and Ma. God bless you. </p>
+    </div>, 
     avatarUrl: '/images/uche.jpg' 
   },
-  
+  { 
+    id: 2, 
+    name: 'Marvellous', 
+    body: <div>
+      <p>Dear Pastors,</p>
+      <p>Happy Happy Anniversary,</p>
+      <p>Aside my parents marriage, you were the first Christian marriage I saw, I saw how mummy honoured Pastor and how Pastor adore his wife.</p>
+      <p>I saw a marriage worthy of emulation. I saw how you raised the Stella Grace and David Noel, so beautiful...</p>
+      <p>I have learnt lessons and wisdom that I have applied and still applying in my own home.</p>
+      <p>Happy Anniversary Pst Gbolagbo and Pst Opeyemi Olarewaju</p>
+    </div>, 
+    avatarUrl: '/images/marvy.jpg' 
+  },
 ]
 
 const initials = (name: string) =>
@@ -33,6 +46,9 @@ export default function Comments() {
   const [body, setBody] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
 
+  // Keeps track of which image URL is currently popped open
+  const [activeModalImage, setActiveModalImage] = useState<string | null>(null)
+
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setImageFile(e.target.files[0])
@@ -43,34 +59,30 @@ export default function Comments() {
     e.preventDefault()
     if (!name.trim() || !body.trim()) return
 
-    // Neat frontend trick: create a temporary browser URL to preview uploaded pictures locally
     let previewUrl = ''
     if (imageFile) {
       previewUrl = URL.createObjectURL(imageFile)
     }
 
     const newComment: Comment = {
-      id: Date.now(), // Unique temporary ID
+      id: Date.now(), 
       name: name.trim(),
       body: body.trim(),
       avatarUrl: previewUrl || undefined
     }
 
-    // Add the new comment to our local list display
     setComments((prev) => [newComment, ...prev])
     
-    // Clear out the form
     setName('')
     setBody('')
     setImageFile(null)
     
-    // Reset file input element visually
     const fileInput = document.getElementById('avatar-upload') as HTMLInputElement
     if (fileInput) fileInput.value = ''
   }
 
   return (
-    <div className="px-6 md:px-16 pt-12 md:pt-16 pb-24">
+    <div className="px-6 md:px-16 pt-12 md:pt-16 pb-24 relative">
       <p className="font-mono text-xs uppercase tracking-[0.2em] text-coral mb-4">
         Guestbook & Wishes
       </p>
@@ -127,14 +139,15 @@ export default function Comments() {
         {comments.map((comment) => (
           <div key={comment.id} className="flex gap-4 items-start">
             {comment.avatarUrl ? (
-              // Renders display picture if it exists (local hardcoded image or temp upload link)
+              // 💡 FIXED: Added onClick listener and cursor pointer classes here
               <img 
                 src={comment.avatarUrl} 
                 alt={comment.name} 
-                className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-ink/10"
+                onClick={() => setActiveModalImage(comment.avatarUrl || null)}
+                className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-ink/10 cursor-zoom-in hover:opacity-85 transition-opacity"
+                title="Click to view picture"
               />
             ) : (
-              // Fallback to beautiful color block with initials if no image is present
               <div className="w-10 h-10 rounded-full bg-coral text-charcoal font-bold text-xs flex items-center justify-center flex-shrink-0">
                 {initials(comment.name)}
               </div>
@@ -142,11 +155,36 @@ export default function Comments() {
             
             <div className="bg-white border border-ink/10 rounded-2xl rounded-tl-sm px-4 py-3 flex-1 shadow-sm">
               <p className="font-medium text-sm mb-1">{comment.name}</p>
-              <p className="text-ink/70 text-sm leading-relaxed">{comment.body}</p>
+              {/* 💡 FIXED: Changed this container from <p> to <div> so your multi-paragraph comments display safely without breaking layout code */}
+              <div className="text-ink/70 text-sm leading-relaxed space-y-2">
+                {comment.body}
+              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Lightbox Overlay Modal */}
+      {activeModalImage && (
+        <div 
+          onClick={() => setActiveModalImage(null)}
+          className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center z-50 p-4 cursor-zoom-out"
+        >
+          <div className="relative max-w-xl max-h-[80vh] bg-white p-2 rounded-2xl shadow-2xl overflow-hidden">
+            <img 
+              src={activeModalImage} 
+              alt="Enlarged profile view" 
+              className="w-full h-auto max-h-[75vh] object-contain rounded-xl"
+            />
+            <button 
+              onClick={() => setActiveModalImage(null)}
+              className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white font-sans text-xs font-bold rounded-full w-7 h-7 flex items-center justify-center transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,56 +1,56 @@
 const sampleMemes = [
   { 
     id: 1, 
-    caption: '10 years later and he still looks at her like it is day one 😍', 
-    imageUrl: '/images/new1.png', // Studio look
+    caption: 'Day 1 of x, x= infinity', 
+    imageUrl: '/images/pgpo1.png', // Studio look
     rotate: '-rotate-2' 
   },
    { 
     id: 2, 
-    caption: 'Two completely separate worlds perfectly blending into a formidable oneness.', 
-    imageUrl: '/images/new1 (1).png', // Leaning on his chest in the white lace dress
+    caption: 'It is not a picture of Pastor without the thumbs up 😂', 
+    imageUrl: '/images/pgpo2.png', // Leaning on his chest in the white lace dress
     rotate: '-rotate-2' 
   },
   { 
     id: 3, 
-    caption: 'When you realize you found the person you can be completely unhinged and loud with forever.', 
-    imageUrl: '/images/new1 (2).png', // B&W wild laughing/back-hug
+    caption: 'God whennnnnn😂', 
+    imageUrl: '/images/pgpo3.png', // B&W wild laughing/back-hug
     rotate: 'rotate-2' 
   },
   { 
     id: 4, 
-    caption: 'Riding through life’s unexpected storms and turns like an absolute power couple.', 
-    imageUrl: '/images/new1 (3).png', // Wedding dress on the superbike
+    caption: 'Hot boyy with his babe😍', 
+    imageUrl: '/images/pgpo4.png', // Wedding dress on the superbike
     rotate: '-rotate-1' 
   },
   { 
     id: 5, 
-    caption: 'Brick by brick, dream by dream, and dynamic dimples all the way!', 
-    imageUrl: '/images/new1 (4).png', // Posing in front of balloons
+    caption: '🥰🥰', 
+    imageUrl: '/images/pgpo5.png', // Posing in front of balloons
     rotate: 'rotate-1' 
   },
   { 
     id: 6, 
-    caption: 'Two completely separate worlds perfectly blending into a formidable oneness.', 
-    imageUrl: '/images/new1 (5).png', // Leaning on his chest in the white lace dress
+    caption: 'Humble beginnings🙃', 
+    imageUrl: '/images/pgpo6.png', // Leaning on his chest in the white lace dress
     rotate: '-rotate-2' 
   },
   { 
     id: 7, 
-    caption: 'Two completely separate worlds perfectly blending into a formidable oneness.', 
-    imageUrl: '/images/new1 (6).png', // Leaning on his chest in the white lace dress
+    caption: 'I will not let you go unless you bless me?😭', 
+    imageUrl: '/images/pgpo7.jpeg', // Leaning on his chest in the white lace dress
     rotate: '-rotate-1  ' 
   },
   { 
     id: 8, 
-    caption: 'Two completely separate worlds perfectly blending into a formidable oneness.', 
-    imageUrl: '/images/new1 (7).png', // Leaning on his chest in the white lace dress
+    caption: 'Look into my eyes and tell me what you see?🥺😂', 
+    imageUrl: '/images/pgpo8.jpeg', // Leaning on his chest in the white lace dress
     rotate: '-rotate-2' 
   },
    { 
     id: 9, 
-    caption: 'Two completely separate worlds perfectly blending into a formidable oneness.', 
-    imageUrl: '/images/WhatsApp Image 2026-06-15 at 8.30.48 AM.jpeg', // Leaning on his chest in the white lace dress
+    caption: 'No thumbs up here ke😭😂', 
+    imageUrl: '/images/pgpo9.jpeg', // Leaning on his chest in the white lace dress
     rotate: '-rotate-2' 
   },
 ]
@@ -63,7 +63,7 @@ export default function Memes() {
       </p>
       <h1 className="font-display text-3xl md:text-4xl font-bold mb-3">The Relationship Board</h1>
       <p className="text-ink/60 max-w-md mb-12">
-       Please note that the memes here might be slightly exagerrataed and I do not wish to chop regiment😭. They are not meant to be taken too seriously, but rather to celebrate with joy and humor in our Pastor's relationship. 
+       Please note that the captions here might be slightly exagerrataed and I do not wish to chop regiment😭. They are not meant to be taken too seriously, but rather to celebrate with joy and humor in our Pastor's relationship. 
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

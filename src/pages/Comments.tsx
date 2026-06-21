@@ -1,36 +1,15 @@
-import { useState, FormEvent, ChangeEvent } from 'react'
+import { useState, useEffect, FormEvent, ChangeEvent } from 'react'
+import { db, storage } from '../firebase'
+import { collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 
 type Comment = {
-  id: number
+  id: string
   name: string
-  body: any // Keeps your custom HTML layout for pre-written comments intact
-  avatarUrl?: string 
+  body: string
+  avatarUrl?: string
+  createdAt: any
 }
-
-const initialComments: Comment[] = [
-  { 
-    id: 1, 
-    name: 'Uche Okolo', 
-    body: <div>
-      <p>Happy wedding anniversary P.Pally.</p>
-      <p>I am grateful to God for the gift you are to my family. You have exemplified a true father to me, your union has taught me that you can get it right in your marriage. Thank you so much Dad for being a great template for us. We see and mummy, we see possibilities of a blessed and sweet union. Thank you Sir and Ma. God bless you. </p>
-    </div>, 
-    avatarUrl: '/images/uche.jpg' 
-  },
-  { 
-    id: 2, 
-    name: 'Marvellous', 
-    body: <div>
-      <p>Dear Pastors,</p>
-      <p>Happy Happy Anniversary,</p>
-      <p>Aside my parents marriage, you were the first Christian marriage I saw, I saw how mummy honoured Pastor and how Pastor adore his wife.</p>
-      <p>I saw a marriage worthy of emulation. I saw how you raised the Stella Grace and David Noel, so beautiful...</p>
-      <p>I have learnt lessons and wisdom that I have applied and still applying in my own home.</p>
-      <p>Happy Anniversary Pst Gbolagbo and Pst Opeyemi Olarewaju</p>
-    </div>, 
-    avatarUrl: '/images/marvy.jpg' 
-  },
-]
 
 const initials = (name: string) =>
   name
@@ -41,13 +20,28 @@ const initials = (name: string) =>
     .toUpperCase()
 
 export default function Comments() {
-  const [comments, setComments] = useState<Comment[]>(initialComments)
+  const [comments, setComments] = useState<Comment[]>([])
   const [name, setName] = useState('')
   const [body, setBody] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
-
-  // Keeps track of which image URL is currently popped open
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeModalImage, setActiveModalImage] = useState<string | null>(null)
+
+  // 📡 LIVE STREAM: Listen to Firestore collection updates in real-time
+  useEffect(() => {
+    const q = query(collection(db, 'comments'), orderBy('createdAt', 'desc'))
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedComments = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Comment[]
+      
+      setComments(fetchedComments)
+    })
+
+    return () => unsubscribe() // Clean up listener on unmount
+  }, [])
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -55,30 +49,41 @@ export default function Comments() {
     }
   }
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || !body.trim()) return
+    if (!name.trim() || !body.trim() || isSubmitting) return
 
-    let previewUrl = ''
-    if (imageFile) {
-      previewUrl = URL.createObjectURL(imageFile)
+    try {
+      setIsSubmitting(true)
+      let finalAvatarUrl = ''
+
+      // 1. If an image file exists, upload it directly to Firebase Storage
+      if (imageFile) {
+        const storageRef = ref(storage, `avatars/${Date.now()}_${imageFile.name}`)
+        await uploadBytes(storageRef, imageFile)
+        finalAvatarUrl = await getDownloadURL(storageRef)
+      }
+
+      // 2. Save the complete comment data block to Firestore
+      await addDoc(collection(db, 'comments'), {
+        name: name.trim(),
+        body: body.trim(),
+        avatarUrl: finalAvatarUrl || null,
+        createdAt: new Date()
+      })
+
+      // Clear Form Fields on Success
+      setName('')
+      setBody('')
+      setImageFile(null)
+      const fileInput = document.getElementById('avatar-upload') as HTMLInputElement
+      if (fileInput) fileInput.value = ''
+    } catch (error) {
+      console.error('Error saving comment:', error)
+      alert('Something went wrong saving your comment. Check your browser console.')
+    } finally {
+      setIsSubmitting(false)
     }
-
-    const newComment: Comment = {
-      id: Date.now(), 
-      name: name.trim(),
-      body: body.trim(),
-      avatarUrl: previewUrl || undefined
-    }
-
-    setComments((prev) => [newComment, ...prev])
-    
-    setName('')
-    setBody('')
-    setImageFile(null)
-    
-    const fileInput = document.getElementById('avatar-upload') as HTMLInputElement
-    if (fileInput) fileInput.value = ''
   }
 
   return (
@@ -88,7 +93,7 @@ export default function Comments() {
       </p>
       <h1 className="font-display text-3xl md:text-4xl font-bold mb-3">Leave a Message</h1>
       <p className="text-ink/60 max-w-md mb-12">
-        Send your congratulations, advice, or favorite memories to the beautiful couple!
+        Send your congratulations, advice, or favorite memories to our Pastors
       </p>
 
       {/* Form Section */}
@@ -98,18 +103,20 @@ export default function Comments() {
         </p>
         <input
           value={name}
+          disabled={isSubmitting}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your name"
           required
-          className="w-full mb-3 px-4 py-2.5 rounded-xl border border-ink/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-coral/40"
+          className="w-full mb-3 px-4 py-2.5 rounded-xl border border-ink/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-coral/40 disabled:opacity-50"
         />
         <textarea
           value={body}
+          disabled={isSubmitting}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Say something nice..."
-          rows={3}
+          rows={4}
           required
-          className="w-full mb-3 px-4 py-2.5 rounded-xl border border-ink/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-coral/40"
+          className="w-full mb-3 px-4 py-2.5 rounded-xl border border-ink/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-coral/40 disabled:opacity-50"
         />
 
         {/* Local Picture Selector */}
@@ -121,25 +128,26 @@ export default function Comments() {
             id="avatar-upload"
             type="file"
             accept="image/*"
+            disabled={isSubmitting}
             onChange={handleImageChange}
-            className="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-paper file:text-ink/70 hover:file:bg-ink/5 cursor-pointer"
+            className="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-paper file:text-ink/70 hover:file:bg-ink/5 cursor-pointer disabled:opacity-50"
           />
         </div>
 
         <button
           type="submit"
-          className="bg-charcoal text-paper font-medium text-xs uppercase tracking-wider px-6 py-3 rounded-xl hover:bg-ink transition-colors"
+          disabled={isSubmitting}
+          className="bg-charcoal text-paper font-medium text-xs uppercase tracking-wider px-6 py-3 rounded-xl hover:bg-ink transition-colors disabled:opacity-50"
         >
-          Post comment
+          {isSubmitting ? 'Posting...' : 'Post comment'}
         </button>
       </form>
 
-      {/* Live Comments List */}
+      {/* Live Cloud Comments List */}
       <div className="max-w-xl flex flex-col gap-4">
         {comments.map((comment) => (
-          <div key={comment.id} className="flex gap-4 items-start">
+          <div key={comment.id} className="flex gap-4 items-start animate-fade-in">
             {comment.avatarUrl ? (
-              // 💡 FIXED: Added onClick listener and cursor pointer classes here
               <img 
                 src={comment.avatarUrl} 
                 alt={comment.name} 
@@ -155,8 +163,8 @@ export default function Comments() {
             
             <div className="bg-white border border-ink/10 rounded-2xl rounded-tl-sm px-4 py-3 flex-1 shadow-sm">
               <p className="font-medium text-sm mb-1">{comment.name}</p>
-              {/* 💡 FIXED: Changed this container from <p> to <div> so your multi-paragraph comments display safely without breaking layout code */}
-              <div className="text-ink/70 text-sm leading-relaxed space-y-2">
+              {/* whitespace-pre-line beautifully layouts paragraphs written into the textarea */}
+              <div className="text-ink/70 text-sm leading-relaxed whitespace-pre-line">
                 {comment.body}
               </div>
             </div>

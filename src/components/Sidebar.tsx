@@ -85,11 +85,6 @@ export default function Sidebar() {
           })}
         </nav>
 
-        <div className="mt-auto pt-8 hidden md:block">
-          <p className="font-mono text-xs text-paper/40 leading-relaxed">
-            Built with React, TypeScript &amp; Tailwind.
-          </p>
-        </div>
       </aside>
     </>
   )
